@@ -2650,6 +2650,15 @@
         }
       }
     },
+    "keyword_detector": {
+      "type": "object",
+      "properties": {
+        "manual_mode_only": {
+          "default": false,
+          "type": "boolean"
+        }
+      }
+    },
     "experimental": {
       "type": "object",
       "properties": {

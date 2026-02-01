@@ -973,6 +973,22 @@ Available hooks: `todo-continuation-enforcer`, `context-window-monitor`, `sessio
 
 **Note on `auto-update-checker` and `startup-toast`**: The `startup-toast` hook is a sub-feature of `auto-update-checker`. To disable only the startup toast notification while keeping update checking enabled, add `"startup-toast"` to `disabled_hooks`. To disable all update checking features (including the toast), add `"auto-update-checker"` to `disabled_hooks`.
 
+## Keyword Detector
+
+Control how search/analyze modes are triggered by the `keyword-detector` hook.
+
+```json
+{
+  "keyword_detector": {
+    "manual_mode_only": true
+  }
+}
+```
+
+| Option              | Default | Description |
+| ------------------- | ------- | ----------- |
+| `manual_mode_only`  | `false` | When `true`, search/analyze modes only trigger on explicit `@search-mode`, `@analyze-mode`, or `@analyse-mode` tags. |
+
 ## Disabled Commands
 
 Disable specific built-in commands via `disabled_commands` in `~/.config/opencode/oh-my-opencode.json` or `.opencode/oh-my-opencode.json`:

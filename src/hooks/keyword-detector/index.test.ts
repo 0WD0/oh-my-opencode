@@ -97,6 +97,128 @@ describe("keyword-detector message transform", () => {
   })
 })
 
+describe("keyword-detector manual trigger mode", () => {
+  let logCalls: Array<{ msg: string; data?: unknown }>
+  let logSpy: ReturnType<typeof spyOn>
+  let getMainSessionSpy: ReturnType<typeof spyOn>
+
+  beforeEach(() => {
+    _resetForTesting()
+    logCalls = []
+    logSpy = spyOn(sharedModule, "log").mockImplementation((msg: string, data?: unknown) => {
+      logCalls.push({ msg, data })
+    })
+  })
+
+  afterEach(() => {
+    logSpy?.mockRestore()
+    getMainSessionSpy?.mockRestore()
+    _resetForTesting()
+  })
+
+  function createMockPluginInput() {
+    return {
+      client: {
+        tui: {
+          showToast: async () => {},
+        },
+      },
+    } as any
+  }
+
+  test("should NOT trigger search when manual mode enabled and no @search-mode", async () => {
+    // #given - manual mode enabled with search keyword but no manual trigger
+    const collector = new ContextCollector()
+    const sessionID = "manual-search-session"
+    getMainSessionSpy = spyOn(sessionState, "getMainSessionID").mockReturnValue(sessionID)
+    const hook = createKeywordDetectorHook(createMockPluginInput(), collector, {
+      manual_mode_only: true,
+    })
+    const output = {
+      message: {} as Record<string, unknown>,
+      parts: [{ type: "text", text: "search for the bug" }],
+    }
+
+    // #when - keyword detection runs
+    await hook["chat.message"]({ sessionID }, output)
+
+    // #then - search mode should NOT be injected
+    const textPart = output.parts.find(p => p.type === "text")
+    expect(textPart).toBeDefined()
+    expect(textPart!.text).toBe("search for the bug")
+    expect(textPart!.text).not.toContain("[search-mode]")
+  })
+
+  test("should trigger search when manual mode enabled and @search-mode present", async () => {
+    // #given - manual mode enabled with @search-mode trigger
+    const collector = new ContextCollector()
+    const sessionID = "manual-search-trigger-session"
+    getMainSessionSpy = spyOn(sessionState, "getMainSessionID").mockReturnValue(sessionID)
+    const hook = createKeywordDetectorHook(createMockPluginInput(), collector, {
+      manual_mode_only: true,
+    })
+    const output = {
+      message: {} as Record<string, unknown>,
+      parts: [{ type: "text", text: "@search-mode search for the bug" }],
+    }
+
+    // #when - keyword detection runs
+    await hook["chat.message"]({ sessionID }, output)
+
+    // #then - search mode should be injected
+    const textPart = output.parts.find(p => p.type === "text")
+    expect(textPart).toBeDefined()
+    expect(textPart!.text).toContain("[search-mode]")
+    expect(textPart!.text).toContain("search for the bug")
+  })
+
+  test("should trigger analyze when manual mode enabled and @analyze-mode present", async () => {
+    // #given - manual mode enabled with @analyze-mode trigger
+    const collector = new ContextCollector()
+    const sessionID = "manual-analyze-trigger-session"
+    getMainSessionSpy = spyOn(sessionState, "getMainSessionID").mockReturnValue(sessionID)
+    const hook = createKeywordDetectorHook(createMockPluginInput(), collector, {
+      manual_mode_only: true,
+    })
+    const output = {
+      message: {} as Record<string, unknown>,
+      parts: [{ type: "text", text: "@analyze-mode analyze this behavior" }],
+    }
+
+    // #when - keyword detection runs
+    await hook["chat.message"]({ sessionID }, output)
+
+    // #then - analyze mode should be injected
+    const textPart = output.parts.find(p => p.type === "text")
+    expect(textPart).toBeDefined()
+    expect(textPart!.text).toContain("[analyze-mode]")
+    expect(textPart!.text).toContain("analyze this behavior")
+  })
+
+  test("should trigger analyze when manual mode enabled and @analyse-mode present", async () => {
+    // #given - manual mode enabled with @analyse-mode trigger
+    const collector = new ContextCollector()
+    const sessionID = "manual-analyse-trigger-session"
+    getMainSessionSpy = spyOn(sessionState, "getMainSessionID").mockReturnValue(sessionID)
+    const hook = createKeywordDetectorHook(createMockPluginInput(), collector, {
+      manual_mode_only: true,
+    })
+    const output = {
+      message: {} as Record<string, unknown>,
+      parts: [{ type: "text", text: "@analyse-mode analyse this behavior" }],
+    }
+
+    // #when - keyword detection runs
+    await hook["chat.message"]({ sessionID }, output)
+
+    // #then - analyze mode should be injected
+    const textPart = output.parts.find(p => p.type === "text")
+    expect(textPart).toBeDefined()
+    expect(textPart!.text).toContain("[analyze-mode]")
+    expect(textPart!.text).toContain("analyse this behavior")
+  })
+})
+
 describe("keyword-detector session filtering", () => {
   let logCalls: Array<{ msg: string; data?: unknown }>
   let logSpy: ReturnType<typeof spyOn>

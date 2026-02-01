@@ -209,6 +209,11 @@ export const CommentCheckerConfigSchema = z.object({
   custom_prompt: z.string().optional(),
 })
 
+export const KeywordDetectorConfigSchema = z.object({
+  /** Require manual @search-mode/@analyze-mode triggers for search/analyze (default: false) */
+  manual_mode_only: z.boolean().default(false),
+})
+
 export const DynamicContextPruningConfigSchema = z.object({
   /** Enable dynamic context pruning (default: false) */
   enabled: z.boolean().default(false),
@@ -384,6 +389,7 @@ export const OhMyOpenCodeConfigSchema = z.object({
   claude_code: ClaudeCodeConfigSchema.optional(),
   sisyphus_agent: SisyphusAgentConfigSchema.optional(),
   comment_checker: CommentCheckerConfigSchema.optional(),
+  keyword_detector: KeywordDetectorConfigSchema.optional(),
   experimental: ExperimentalConfigSchema.optional(),
   auto_update: z.boolean().optional(),
   skills: SkillsConfigSchema.optional(),
@@ -407,6 +413,7 @@ export type BuiltinCommandName = z.infer<typeof BuiltinCommandNameSchema>
 export type BuiltinSkillName = z.infer<typeof BuiltinSkillNameSchema>
 export type SisyphusAgentConfig = z.infer<typeof SisyphusAgentConfigSchema>
 export type CommentCheckerConfig = z.infer<typeof CommentCheckerConfigSchema>
+export type KeywordDetectorConfig = z.infer<typeof KeywordDetectorConfigSchema>
 export type ExperimentalConfig = z.infer<typeof ExperimentalConfigSchema>
 export type DynamicContextPruningConfig = z.infer<typeof DynamicContextPruningConfigSchema>
 export type SkillsConfig = z.infer<typeof SkillsConfigSchema>

@@ -5,12 +5,19 @@ import { log } from "../../shared"
 import { hasSystemReminder, isSystemDirective, removeSystemReminders } from "../../shared/system-directive"
 import { getMainSessionID, getSessionAgent, subagentSessions } from "../../features/claude-code-session-state"
 import type { ContextCollector } from "../../features/context-injector"
+import type { KeywordDetectorConfig } from "../../config"
 
 export * from "./detector"
 export * from "./constants"
 export * from "./types"
 
-export function createKeywordDetectorHook(ctx: PluginInput, collector?: ContextCollector) {
+export function createKeywordDetectorHook(
+  ctx: PluginInput,
+  collector?: ContextCollector,
+  config?: KeywordDetectorConfig
+) {
+  const manualModeOnly = config?.manual_mode_only ?? false
+
   return {
     "chat.message": async (
       input: {
@@ -35,11 +42,22 @@ export function createKeywordDetectorHook(ctx: PluginInput, collector?: ContextC
 
       // Remove system-reminder content to prevent automated system messages from triggering mode keywords
       const cleanText = removeSystemReminders(promptText)
+      const textWithoutCode = removeCodeBlocks(cleanText)
       const modelID = input.model?.modelID
-      let detectedKeywords = detectKeywordsWithType(removeCodeBlocks(cleanText), currentAgent, modelID)
+      let detectedKeywords = detectKeywordsWithType(textWithoutCode, currentAgent, modelID)
 
       if (isPlannerAgent(currentAgent)) {
         detectedKeywords = detectedKeywords.filter((k) => k.type !== "ultrawork")
+      }
+
+      if (manualModeOnly) {
+        const hasSearchTrigger = /@search-mode\b/i.test(textWithoutCode)
+        const hasAnalyzeTrigger = /@analy(?:s|z)e-mode\b/i.test(textWithoutCode)
+        detectedKeywords = detectedKeywords.filter((k) => {
+          if (k.type === "search") return hasSearchTrigger
+          if (k.type === "analyze") return hasAnalyzeTrigger
+          return true
+        })
       }
 
       if (detectedKeywords.length === 0) {
